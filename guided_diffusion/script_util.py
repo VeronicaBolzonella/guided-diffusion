@@ -95,6 +95,7 @@ def create_model_and_diffusion(
     resblock_updown,
     use_fp16,
     use_new_attention_order,
+    **kwargs
 ):
     model = create_model(
         image_size,
@@ -300,6 +301,7 @@ def sr_create_model_and_diffusion(
     use_scale_shift_norm,
     resblock_updown,
     use_fp16,
+    **kwargs
 ):
     model = sr_create_model(
         large_size,

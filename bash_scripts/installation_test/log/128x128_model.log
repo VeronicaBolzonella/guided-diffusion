@@ -1,0 +1,15 @@
++ SAMPLE_FLAGS='--batch_size 4 --num_samples 10 --timestep_respacing 250'
++ MODEL_FLAGS='--attention_resolutions 32,16,8 --class_cond True --diffusion_steps 1000 --image_size 128 --learn_sigma True --noise_schedule linear --num_channels 256 --num_heads 4 --num_res_blocks 2 --resblock_updown True --use_fp16 True --use_scale_shift_norm True'
++ python3 /src/image_sample.py --attention_resolutions 32,16,8 --class_cond True --diffusion_steps 1000 --image_size 128 --learn_sigma True --noise_schedule linear --num_channels 256 --num_heads 4 --num_res_blocks 2 --resblock_updown True --use_fp16 True --use_scale_shift_norm True --model_path /src/pretrained_models/128x128_diffusion.pt --batch_size 4 --num_samples 10 --timestep_respacing 250
+Logging to /tmp/openai-2023-01-18-22-07-05-279877
+/src/pretrained_models/128x128_diffusion.pt
+Logging to /tmp/openai-2023-01-18-22-07-05-281579
+creating model and diffusion...
+sampling...
+created 4 samples
+created 8 samples
+created 12 samples
+saving to /tmp/openai-2023-01-18-22-07-05-281579/samples_10x128x128x3.npz
+sampling complete
+
+cp /tmp/openai-2023-01-18-22-07-05-281579/samples_10x128x128x3.npz /src/bash_scripts/installation_test/results/

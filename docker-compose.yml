@@ -1,0 +1,8 @@
+version: "3.9" # Docker-compose version, just using the latest for now
+services: 
+  diffusion_with_classifier: # Name of the service, can be whatever you want
+    build: . # The . here is similar to the docker build . which specifiy the context in which to build the docker image under
+    volumes:
+    - ./:/src # Left hand is host, right hand is container. Basically map an outside volume into container
+    ports:
+    - 7777:8888 # Left hand is the host computer port, right hand is the container port

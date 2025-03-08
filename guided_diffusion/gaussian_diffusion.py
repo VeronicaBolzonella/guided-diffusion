@@ -437,7 +437,78 @@ class GaussianDiffusion:
             )
         sample = out["mean"] + nonzero_mask * th.exp(0.5 * out["log_variance"]) * noise
         return {"sample": sample, "pred_xstart": out["pred_xstart"]}
+def p_sample_loop(
+        self,
+        model,
+        shape,
+        noise=None,
+        clip_denoised=True,
+        denoised_fn=None,
+        cond_fn=None,
+        model_kwargs=None,
+        device=None,
+        progress=False,
+        blurry_image=None  # Added here
+    ):
+        """
+        Generate samples from the model with blurry image conditioning.
 
+        :param model: the model module.
+        :param shape: the shape of the samples, (N, C, H, W).
+        :param noise: if specified, the noise from the encoder to sample.
+                      Should be of the same shape as `shape`.
+        :param clip_denoised: if True, clip x_start predictions to [-1, 1].
+        :param denoised_fn: if not None, a function which applies to the
+            x_start prediction before it is used to sample.
+        :param cond_fn: if not None, this is a gradient function that acts
+                        similarly to the model.
+        :param model_kwargs: if not None, a dict of extra keyword arguments to
+            pass to the model. This can be used for conditioning.
+        :param device: if specified, the device to create the samples on.
+                       If not specified, use a model parameter's device.
+        :param progress: if True, show a tqdm progress bar.
+        :return: a non-differentiable batch of samples.
+        """
+        final = None
+        blurry_image = model_kwargs.get("blurry_image", None)  # Get blurry image
+
+        for sample in self.p_sample_loop_progressive(
+            model,
+            shape,
+            noise=noise,
+            clip_denoised=clip_denoised,
+            denoised_fn=denoised_fn,
+            cond_fn=self.get_conditioning_function(blurry_image) if blurry_image is not None else cond_fn,
+            model_kwargs=model_kwargs,
+            device=device,
+            progress=progress,
+        ):
+            final = sample
+        return final["sample"]
+
+def get_conditioning_function(self, blurry_image):
+    """
+    Creates a conditioning function that incorporates blurry image guidance.
+    """
+    def conditioning_fn(x, t, out, **kwargs):
+        alpha_t = self.alphas_cumprod[t].sqrt()  # Compute α_t
+        eps_theta = out["pred_xstart"]  # Model's predicted denoised image
+
+        mu_hat = (1 / alpha_t) * (x - (1 - alpha_t).sqrt() * eps_theta)  # Compute μ̂
+
+        # Compute y_t (blurry image estimate at step t)
+        y_t = alpha_t * blurry_image + (1 - alpha_t).sqrt() * eps_theta
+
+        # Compute guidance term g
+        A = torch.eye(x.shape[-1]).to(x.device)  # Assuming identity transformation A
+        g = -2 * A.T @ (A @ mu_hat - y_t)
+
+        return g  # Return conditioning term
+
+    return conditioning_fn
+
+
+        
     def p_sample_loop(
         self,
         model,
